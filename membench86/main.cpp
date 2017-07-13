@@ -9,6 +9,7 @@
 #include "argparse.h"
 #include "kernel.h"
 #include "osdep.h"
+#include "timer.h"
 
 namespace {
 
@@ -238,19 +239,20 @@ void run(const Arguments &args)
 
 	// Start timing.
 	std::this_thread::sleep_for(std::chrono::milliseconds(5));
-	auto start_time = std::chrono::high_resolution_clock::now();
+
+	Timer timer;
+	timer.start();
 
 	start_flag = true;
 	for (auto &th : threads) {
 		th.join();
 	}
 
-	auto end_time = std::chrono::high_resolution_clock::now();
+	timer.stop();
 
 	// Print report.
-	double time_sec = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time).count();
-	double bandwidth_gbps = args.total_size_gb * num_cpus / time_sec;
-	std::cout << "elapsed: " << time_sec << " s\n";
+	double bandwidth_gbps = args.total_size_gb * num_cpus / timer.elapsed();
+	std::cout << "elapsed: " << timer.elapsed() << " s\n";
 	std::cout << "bandwidth: " << bandwidth_gbps << " GB/s\n";
 }
 
