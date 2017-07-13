@@ -141,7 +141,9 @@ void numa_free(void *ptr)
 
 void set_processor_affinity(unsigned node, unsigned n)
 {
-	if (!SetThreadGroupAffinity(GetCurrentThread(), &processor_information().affinity_mask(node, n), nullptr))
+	GROUP_AFFINITY affinity = processor_information().affinity_mask(node, n);
+
+	if (!SetThreadGroupAffinity(GetCurrentThread(), &affinity, nullptr))
 		std::terminate();
 }
 #else // _WIN32
