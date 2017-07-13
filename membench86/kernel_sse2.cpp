@@ -3,6 +3,8 @@
 
 unsigned read_memory_sse2(const void *buf, size_t count)
 {
+	const char *buf_p = (const char *)buf;
+
 	__m128i x0 = _mm_setzero_si128();
 	__m128i x1 = x0;
 	__m128i x2 = x0;
@@ -12,16 +14,18 @@ unsigned read_memory_sse2(const void *buf, size_t count)
 	__m128i x6 = x0;
 	__m128i x7 = x0;
 
-#define AT(x) (const __m128i *)((const char *)buf + (x))
+#define AT(x) (const __m128i *)((const char *)buf_p + (x))
 	for (size_t i = 0; i < count; i += 16 * 8) {
-		x0 = _mm_xor_si128(x0, _mm_load_si128(AT(i + 16 * 0)));
-		x1 = _mm_xor_si128(x1, _mm_load_si128(AT(i + 16 * 1)));
-		x2 = _mm_xor_si128(x2, _mm_load_si128(AT(i + 16 * 2)));
-		x3 = _mm_xor_si128(x3, _mm_load_si128(AT(i + 16 * 3)));
-		x4 = _mm_xor_si128(x4, _mm_load_si128(AT(i + 16 * 4)));
-		x5 = _mm_xor_si128(x5, _mm_load_si128(AT(i + 16 * 5)));
-		x6 = _mm_xor_si128(x6, _mm_load_si128(AT(i + 16 * 6)));
-		x7 = _mm_xor_si128(x7, _mm_load_si128(AT(i + 16 * 7)));
+		x0 = _mm_xor_si128(x0, _mm_load_si128(AT(16 * 0)));
+		x1 = _mm_xor_si128(x1, _mm_load_si128(AT(16 * 1)));
+		x2 = _mm_xor_si128(x2, _mm_load_si128(AT(16 * 2)));
+		x3 = _mm_xor_si128(x3, _mm_load_si128(AT(16 * 3)));
+		x4 = _mm_xor_si128(x4, _mm_load_si128(AT(16 * 4)));
+		x5 = _mm_xor_si128(x5, _mm_load_si128(AT(16 * 5)));
+		x6 = _mm_xor_si128(x6, _mm_load_si128(AT(16 * 6)));
+		x7 = _mm_xor_si128(x7, _mm_load_si128(AT(16 * 7)));
+
+		buf_p += 16 * 8;
 	}
 #undef AT
 
