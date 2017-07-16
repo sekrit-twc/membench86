@@ -33,6 +33,9 @@
     <ClCompile Include="kernel_sse2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="kernel_avx512.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aligned_malloc.h">

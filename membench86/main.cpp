@@ -69,6 +69,7 @@ struct Arguments {
 	unsigned num_cpus = 0;
 	char sse = 0;
 	char avx = 0;
+	char avx512 = 0;
 };
 
 constexpr ArgparseOption program_switches[] = {
@@ -80,6 +81,9 @@ constexpr ArgparseOption program_switches[] = {
 	{ OPTION_UINT,      "c", "num-cpus",    offsetof(Arguments, num_cpus),      nullptr, "number of CPUs per node to use" },
 	{ OPTION_FLAG,      "x", "sse",         offsetof(Arguments, sse),           nullptr, "use SSE2 (XMM) kernel" },
 	{ OPTION_FLAG,      "y", "avx",         offsetof(Arguments, avx),           nullptr, "use AVX2 (YMM) kernel" },
+#ifdef __INTEL_COMPILER
+	{ OPTION_FLAG,      "z", "avx512",      offsetof(Arguments, avx512),        nullptr, "use AVX-512 BW (ZMM) kernel" },
+#endif
 	{ OPTION_NULL }
 };
 
@@ -199,6 +203,11 @@ void run(const Arguments &args)
 
 				switch (args.mode) {
 				case AccessMode::READ:
+#ifdef __INTEL_COMPILER
+					if (args.avx512)
+						w.set_kernel(read_memory_avx512);
+					else
+#endif
 					if (args.avx)
 						w.set_kernel(read_memory_avx2);
 					else if (args.sse)
