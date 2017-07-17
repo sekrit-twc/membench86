@@ -1,3 +1,5 @@
+#ifdef __INTEL_COMPILER
+
 #include <immintrin.h>
 #include "kernel.h"
 
@@ -66,3 +68,5 @@ unsigned read_memory_avx512(const void *buf, size_t count)
 
 	return _mm_extract_epi8(_mm512_extracti32x4_epi32(x0, 0), 0);
 }
+
+#endif // __INTEL_COMPILER
