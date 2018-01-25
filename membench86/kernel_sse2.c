@@ -3,7 +3,8 @@
 
 unsigned read_memory_sse2(const void *buf, size_t count)
 {
-	const char *buf_p = (const char *)buf;
+	const char *buf_p = buf;
+	size_t i;
 
 	__m128i x0 = _mm_setzero_si128();
 	__m128i x1 = x0;
@@ -15,7 +16,7 @@ unsigned read_memory_sse2(const void *buf, size_t count)
 	__m128i x7 = x0;
 
 #define AT(x) (const __m128i *)((const char *)buf_p + (x))
-	for (size_t i = 0; i < count; i += 16 * 8) {
+	for (i = 0; i < count; i += 16 * 8) {
 		x0 = _mm_xor_si128(x0, _mm_load_si128(AT(16 * 0)));
 		x1 = _mm_xor_si128(x1, _mm_load_si128(AT(16 * 1)));
 		x2 = _mm_xor_si128(x2, _mm_load_si128(AT(16 * 2)));

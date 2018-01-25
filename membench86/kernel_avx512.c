@@ -5,7 +5,8 @@
 
 unsigned read_memory_avx512(const void *buf, size_t count)
 {
-	const char *buf_p = (const char *)buf;
+	const char *buf_p = buf;
+	size_t i;
 
 	__m512i x0 = _mm512_setzero_si512();
 	__m512i x1 = x0;
@@ -24,7 +25,7 @@ unsigned read_memory_avx512(const void *buf, size_t count)
 	__m512i x14 = x0;
 	__m512i x15 = x0;
 
-	for (size_t i = 0; i < count; i += 16 * 64) {
+	for (i = 0; i < count; i += 16 * 64) {
 		x0 = _mm512_xor_si512(x0, _mm512_load_si512(buf_p + 0 * 64));
 		x1 = _mm512_xor_si512(x1, _mm512_load_si512(buf_p + 1 * 64));
 		x2 = _mm512_xor_si512(x2, _mm512_load_si512(buf_p + 2 * 64));
@@ -67,4 +68,4 @@ unsigned read_memory_avx512(const void *buf, size_t count)
 	return _mm_extract_epi8(_mm512_extracti32x4_epi32(x0, 0), 0);
 }
 
-#endif // __INTEL_COMPILER
+#endif /* __INTEL_COMPILER */

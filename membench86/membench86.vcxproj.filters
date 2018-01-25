@@ -24,16 +24,16 @@
     <ClCompile Include="osdep.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="kernel.cpp">
+    <ClCompile Include="kernel.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="kernel_avx2.cpp">
+    <ClCompile Include="kernel_avx2.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="kernel_sse2.cpp">
+    <ClCompile Include="kernel_avx512.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="kernel_avx512.cpp">
+    <ClCompile Include="kernel_sse2.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

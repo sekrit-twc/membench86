@@ -3,7 +3,8 @@
 
 unsigned read_memory_avx2(const void *buf, size_t count)
 {
-	const char *buf_p = (const char *)buf;
+	const char *buf_p = buf;
+	size_t i;
 
 	__m256i x0 = _mm256_setzero_si256();
 	__m256i x1 = x0;
@@ -15,7 +16,7 @@ unsigned read_memory_avx2(const void *buf, size_t count)
 	__m256i x7 = x0;
 
 #define AT(x) (const __m256i *)((const char *)buf_p + (x))
-	for (size_t i = 0; i < count; i += 32 * 8) {
+	for (i = 0; i < count; i += 32 * 8) {
 		x0 = _mm256_xor_si256(x0, _mm256_load_si256(AT(32 * 0)));
 		x1 = _mm256_xor_si256(x1, _mm256_load_si256(AT(32 * 1)));
 		x2 = _mm256_xor_si256(x2, _mm256_load_si256(AT(32 * 2)));
