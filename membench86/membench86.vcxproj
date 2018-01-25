@@ -134,10 +134,10 @@
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
-      <UseProcessorExtensions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CORE512</UseProcessorExtensions>
-      <UseProcessorExtensions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CORE512</UseProcessorExtensions>
-      <UseProcessorExtensions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CORE512</UseProcessorExtensions>
-      <UseProcessorExtensions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CORE512</UseProcessorExtensions>
+      <UseProcessorExtensions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">COMMON512</UseProcessorExtensions>
+      <UseProcessorExtensions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">COMMON512</UseProcessorExtensions>
+      <UseProcessorExtensions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">COMMON512</UseProcessorExtensions>
+      <UseProcessorExtensions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">COMMON512</UseProcessorExtensions>
     </ClCompile>
     <ClCompile Include="kernel_sse2.c">
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">StreamingSIMDExtensions2</EnableEnhancedInstructionSet>

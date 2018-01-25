@@ -46,24 +46,24 @@ unsigned read_memory_avx512(const void *buf, size_t count)
 		buf_p += 16 * 64;
 	}
 
-	x0 = _mm512_add_epi8(x0, x1);
-	x2 = _mm512_add_epi8(x2, x3);
-	x4 = _mm512_add_epi8(x4, x5);
-	x6 = _mm512_add_epi8(x6, x7);
-	x8 = _mm512_add_epi8(x8, x9);
-	x10 = _mm512_add_epi8(x10, x11);
-	x12 = _mm512_add_epi8(x12, x13);
-	x14 = _mm512_add_epi8(x14, x15);
+	x0 = _mm512_add_epi32(x0, x1);
+	x2 = _mm512_add_epi32(x2, x3);
+	x4 = _mm512_add_epi32(x4, x5);
+	x6 = _mm512_add_epi32(x6, x7);
+	x8 = _mm512_add_epi32(x8, x9);
+	x10 = _mm512_add_epi32(x10, x11);
+	x12 = _mm512_add_epi32(x12, x13);
+	x14 = _mm512_add_epi32(x14, x15);
 
-	x0 = _mm512_add_epi8(x0, x2);
-	x4 = _mm512_add_epi8(x4, x6);
-	x8 = _mm512_add_epi8(x8, x10);
-	x12 = _mm512_add_epi8(x12, x14);
+	x0 = _mm512_add_epi32(x0, x2);
+	x4 = _mm512_add_epi32(x4, x6);
+	x8 = _mm512_add_epi32(x8, x10);
+	x12 = _mm512_add_epi32(x12, x14);
 
-	x0 = _mm512_add_epi8(x0, x4);
-	x8 = _mm512_add_epi8(x8, x12);
+	x0 = _mm512_add_epi32(x0, x4);
+	x8 = _mm512_add_epi32(x8, x12);
 
-	x0 = _mm512_add_epi8(x0, x8);
+	x0 = _mm512_add_epi32(x0, x8);
 
 	return _mm_extract_epi8(_mm512_extracti32x4_epi32(x0, 0), 0);
 }

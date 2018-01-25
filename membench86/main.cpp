@@ -82,7 +82,7 @@ constexpr ArgparseOption program_switches[] = {
 	{ OPTION_FLAG,      "x", "sse",         offsetof(Arguments, sse),           nullptr, "use SSE2 (XMM) kernel" },
 	{ OPTION_FLAG,      "y", "avx",         offsetof(Arguments, avx),           nullptr, "use AVX2 (YMM) kernel" },
 #ifdef __INTEL_COMPILER
-	{ OPTION_FLAG,      "z", "avx512",      offsetof(Arguments, avx512),        nullptr, "use AVX-512 BW (ZMM) kernel" },
+	{ OPTION_FLAG,      "z", "avx512",      offsetof(Arguments, avx512),        nullptr, "use AVX-512 (ZMM) kernel" },
 #endif
 	{ OPTION_NULL }
 };
