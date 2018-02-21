@@ -9,7 +9,9 @@ unsigned numa_node_count();
 
 unsigned numa_node_processor_count(unsigned node);
 
-void *numa_malloc(unsigned node, size_t size, size_t alignment);
+void *numa_malloc(unsigned node, size_t size);
+
+void *numa_malloc_hugepage(unsigned node, size_t size);
 
 void numa_free(void *ptr);
 

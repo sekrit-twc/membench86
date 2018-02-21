@@ -67,6 +67,7 @@ struct Arguments {
 	unsigned long long total_size_gb = 1024;
 	unsigned num_nodes = 0;
 	unsigned num_cpus = 0;
+	char hugepage = 1;
 	char sse = 0;
 	char avx = 0;
 	char avx512 = 0;
@@ -79,6 +80,7 @@ constexpr ArgparseOption program_switches[] = {
 	{ OPTION_ULONGLONG, "t", "total-size",  offsetof(Arguments, total_size_gb), nullptr, "per-thread total memory accessed (GB)" },
 	{ OPTION_UINT,      "n", "num-nodes",   offsetof(Arguments, num_nodes),     nullptr, "number of NUMA nodes to use" },
 	{ OPTION_UINT,      "c", "num-cpus",    offsetof(Arguments, num_cpus),      nullptr, "number of CPUs per node to use" },
+	{ OPTION_FLAG,      "p", "hugepage",    offsetof(Arguments, hugepage),      nullptr, "enable huge pages" },
 	{ OPTION_FLAG,      "x", "sse",         offsetof(Arguments, sse),           nullptr, "use SSE2 (XMM) kernel" },
 	{ OPTION_FLAG,      "y", "avx",         offsetof(Arguments, avx),           nullptr, "use AVX2 (YMM) kernel" },
 #ifdef __INTEL_COMPILER
@@ -143,9 +145,6 @@ public:
 				return;
 
 			volatile unsigned x = m_kernel(buf, count);
-
-			// if (m_numa_node == 0 && m_cpu_num == 0 && i % 100000 == 0)
-				// std::cout << i << " out of " << m_iter_count << '\n';
 		}
 	}
 };
@@ -177,9 +176,16 @@ void run(const Arguments &args)
 			break;
 		}
 
-		buffers[i] = std::shared_ptr<void>{ numa_malloc(i, allocated_size[i], static_cast<size_t>(4_kB)), numa_free };
-		if (!buffers[i])
-			throw std::bad_alloc{};
+		if (args.hugepage) {
+			buffers[i] = std::shared_ptr<void>{ numa_malloc_hugepage(i, allocated_size[i]), numa_free };
+			if (!buffers[i])
+				std::cerr << "failed to allocate huge page\n";
+		}
+		if (!buffers[i]) {
+			buffers[i] = std::shared_ptr<void>{ numa_malloc(i, allocated_size[i]), numa_free };
+			if (!buffers[i])
+				throw std::bad_alloc{};
+		}
 
 		std::memset(buffers[i].get(), 0xFF, allocated_size[i]);
 		num_cpus += num_node_cpus;

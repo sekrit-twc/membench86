@@ -116,6 +116,31 @@ const PhysicalProcessorInformation &processor_information()
 	return info;
 }
 
+bool enable_hugepages()
+{
+	HANDLE token = INVALID_HANDLE_VALUE;
+	TOKEN_PRIVILEGES priv = {};
+
+	if (!(OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &token)))
+		return false;
+
+	if (!(LookupPrivilegeValue(nullptr, SE_LOCK_MEMORY_NAME, &priv.Privileges[0].Luid))) {
+		CloseHandle(token);
+		return false;
+	}
+
+	priv.PrivilegeCount = 1;
+	priv.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+
+	if (!(AdjustTokenPrivileges(token, FALSE, &priv, 0, nullptr, 0))) {
+		CloseHandle(token);
+		return false;
+	}
+
+	CloseHandle(token);
+	return true;
+}
+
 } // namespace
 
 
@@ -129,9 +154,23 @@ unsigned numa_node_processor_count(unsigned node)
 	return processor_information().num_cpus(node);
 }
 
-void *numa_malloc(unsigned node, size_t size, size_t alignment)
+void *numa_malloc(unsigned node, size_t size)
 {
 	return VirtualAllocExNuma(GetCurrentProcess(), nullptr, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE, processor_information().numa_number(node));
+}
+
+void *numa_malloc_hugepage(unsigned node, size_t size)
+{
+	static const bool enabled = enable_hugepages();
+	if (!enabled)
+		return nullptr;
+
+	static const size_t pagesize = GetLargePageMinimum();
+
+	if (size % pagesize)
+		size += pagesize - size % pagesize;
+
+	return VirtualAllocExNuma(GetCurrentProcess(), nullptr, size, MEM_COMMIT | MEM_RESERVE | MEM_LARGE_PAGES, PAGE_READWRITE, processor_information().numa_number(node));
 }
 
 void numa_free(void *ptr)
@@ -159,14 +198,23 @@ unsigned numa_node_processor_count(unsigned node)
 	return 1;
 }
 
-void *numa_malloc(unsigned node, size_t size, size_t alignment)
+void *numa_malloc(unsigned node, size_t size)
 {
-	return aligned_malloc(size, alignment);
+	return aligned_malloc(size, 4096);
+}
+
+void *numa_malloc_hugepage(unsigned node, size_t size)
+{
+	return aligned_malloc(size, static_cast<size_t>(2 * (1UL << 20)));
 }
 
 void numa_free(void *ptr)
 {
 	aligned_free(ptr);
+}
+
+void enable_hugepage()
+{
 }
 
 void set_processor_affinity(unsigned node, unsigned n)
