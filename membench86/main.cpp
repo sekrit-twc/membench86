@@ -83,9 +83,7 @@ constexpr ArgparseOption program_switches[] = {
 	{ OPTION_FLAG,      "p", "hugepage",    offsetof(Arguments, hugepage),      nullptr, "enable huge pages" },
 	{ OPTION_FLAG,      "x", "sse",         offsetof(Arguments, sse),           nullptr, "use SSE2 (XMM) kernel" },
 	{ OPTION_FLAG,      "y", "avx",         offsetof(Arguments, avx),           nullptr, "use AVX2 (YMM) kernel" },
-#ifdef __INTEL_COMPILER
 	{ OPTION_FLAG,      "z", "avx512",      offsetof(Arguments, avx512),        nullptr, "use AVX-512 (ZMM) kernel" },
-#endif
 	{ OPTION_NULL }
 };
 
@@ -209,12 +207,9 @@ void run(const Arguments &args)
 
 				switch (args.mode) {
 				case AccessMode::READ:
-#ifdef __INTEL_COMPILER
 					if (args.avx512)
 						w.set_kernel(read_memory_avx512);
-					else
-#endif
-					if (args.avx)
+					else if (args.avx)
 						w.set_kernel(read_memory_avx2);
 					else if (args.sse)
 						w.set_kernel(read_memory_sse2);
