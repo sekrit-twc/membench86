@@ -71,6 +71,7 @@ struct Arguments {
 	char sse = 0;
 	char avx = 0;
 	char avx512 = 0;
+	char nt = 0;
 };
 
 constexpr ArgparseOption program_switches[] = {
@@ -84,6 +85,7 @@ constexpr ArgparseOption program_switches[] = {
 	{ OPTION_FLAG,      "x", "sse",         offsetof(Arguments, sse),           nullptr, "use SSE2 (XMM) kernel" },
 	{ OPTION_FLAG,      "y", "avx",         offsetof(Arguments, avx),           nullptr, "use AVX2 (YMM) kernel" },
 	{ OPTION_FLAG,      "z", "avx512",      offsetof(Arguments, avx512),        nullptr, "use AVX-512 (ZMM) kernel" },
+	{ OPTION_FLAG,      nullptr, "nt",      offsetof(Arguments, nt),            nullptr, "use non-temporal store" },
 	{ OPTION_NULL }
 };
 
@@ -96,19 +98,19 @@ constexpr ArgparseCommandLine program_def = {
 
 
 class Worker {
-	std::shared_ptr<const void> m_buffer;
+	std::shared_ptr<void> m_buffer;
 	std::atomic_bool *m_start_flag;
 	std::atomic_bool *m_cancel_flag;
 	unsigned m_numa_node;
 	unsigned m_cpu_num;
 	unsigned m_iter_count;
 
-	unsigned (*m_kernel)(const void *, size_t);
+	unsigned (*m_kernel)(void *, size_t);
 
 	size_t m_first;
 	size_t m_last;
 public:
-	Worker(std::shared_ptr<const void> buffer, std::atomic_bool *start_flag, std::atomic_bool *cancel_flag, unsigned numa_node, unsigned cpu_num) :
+	Worker(std::shared_ptr<void> buffer, std::atomic_bool *start_flag, std::atomic_bool *cancel_flag, unsigned numa_node, unsigned cpu_num) :
 		m_buffer{ std::move(buffer) },
 		m_start_flag{ start_flag },
 		m_cancel_flag{ cancel_flag },
@@ -122,13 +124,13 @@ public:
 
 	void set_iter_count(unsigned iter_count) { m_iter_count = iter_count; }
 
-	void set_kernel(unsigned (*kernel)(const void *, size_t)) { m_kernel = kernel; }
+	void set_kernel(unsigned (*kernel)(void *, size_t)) { m_kernel = kernel; }
 
 	void set_bounds(size_t first, size_t last) { m_first = first; m_last = last; }
 
 	void operator()()
 	{
-		const void *buf = (const char *)m_buffer.get() + m_first;
+		void *buf = (char *)m_buffer.get() + m_first;
 		size_t count = m_last - m_first;
 
 		set_processor_affinity(m_numa_node, m_cpu_num);
@@ -149,8 +151,8 @@ public:
 
 void run(const Arguments &args)
 {
-	if (args.mode != AccessMode::READ)
-		throw std::runtime_error{ "only READ access supported" };
+	if (args.mode != AccessMode::READ && args.sharing != MemorySharing::PRIVATE)
+		throw std::runtime_error{ "only private buffers supported in WRITE and COPY" };
 
 	// Get physical processor count.
 	unsigned num_nodes = args.num_nodes ? args.num_nodes : numa_node_count();
@@ -216,6 +218,18 @@ void run(const Arguments &args)
 					else
 						w.set_kernel(read_memory_c);
 					break;
+				case AccessMode::WRITE:
+					if (args.avx512)
+						w.set_kernel(args.nt ? write_memory_nt_avx512 : write_memory_avx512);
+					else if (args.avx)
+						w.set_kernel(args.nt ? write_memory_nt_avx2 : write_memory_avx2);
+					else if (args.sse)
+						w.set_kernel(args.nt ? write_memory_nt_sse2 : write_memory_sse2);
+					else
+						w.set_kernel(write_memory_c);
+					break;
+				case AccessMode::COPY:
+					throw std::runtime_error{ "COPY not implemented" };
 				default:
 					return;
 				}

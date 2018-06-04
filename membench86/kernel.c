@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include "kernel.h"
 
-unsigned read_memory_c(const void *buf, size_t count)
+unsigned read_memory_c(void *buf, size_t count)
 {
 #if UINTPTR_MAX == ULLONG_MAX
 	const unsigned long long *buf_p = buf;
@@ -49,3 +49,40 @@ unsigned read_memory_c(const void *buf, size_t count)
 #endif /* INTPTR_MAX == INT_LEAST64_MAX */
 	return (unsigned)x0;
 }
+
+unsigned write_memory_c(void *buf, size_t count)
+{
+#if UINTPTR_MAX == ULLONG_MAX
+	unsigned long long *buf_p = buf;
+	size_t i;
+
+	unsigned long long val = 0;
+
+	for (i = 0; i < count; i += sizeof(unsigned long long) * 8) {
+		val = i;
+
+		buf_p[i / sizeof(unsigned long long) + 0] = val + 0;
+		buf_p[i / sizeof(unsigned long long) + 1] = val + 1;
+		buf_p[i / sizeof(unsigned long long) + 2] = val + 2;
+		buf_p[i / sizeof(unsigned long long) + 3] = val + 3;
+		buf_p[i / sizeof(unsigned long long) + 4] = val + 4;
+		buf_p[i / sizeof(unsigned long long) + 5] = val + 5;
+		buf_p[i / sizeof(unsigned long long) + 6] = val + 6;
+		buf_p[i / sizeof(unsigned long long) + 7] = val + 7;
+	}
+#else
+	unsigned *buf_p = buf;
+	size_t i;
+
+	unsigned val = 0;
+
+	for (i = 0; i < count; i += sizeof(unsigned) * 4) {
+		buf_p[i / sizeof(unsigned) + 0] = val + 0;
+		buf_p[i / sizeof(unsigned) + 1] = val + 1;
+		buf_p[i / sizeof(unsigned) + 2] = val + 2;
+		buf_p[i / sizeof(unsigned) + 3] = val + 3;
+	}
+#endif /* INTPTR_MAX == INT_LEAST64_MAX */
+	return (unsigned)val;
+}
+	

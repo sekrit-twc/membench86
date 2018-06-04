@@ -1,7 +1,7 @@
 #include <emmintrin.h>
 #include "kernel.h"
 
-unsigned read_memory_sse2(const void *buf, size_t count)
+unsigned read_memory_sse2(void *buf, size_t count)
 {
 	const char *buf_p = buf;
 	size_t i;
@@ -15,7 +15,7 @@ unsigned read_memory_sse2(const void *buf, size_t count)
 	__m128i x6 = x0;
 	__m128i x7 = x0;
 
-#define AT(x) (const __m128i *)((const char *)buf_p + (x))
+#define AT(x) (const __m128i *)(buf_p + (x))
 	for (i = 0; i < count; i += 16 * 8) {
 		x0 = _mm_xor_si128(x0, _mm_load_si128(AT(16 * 0)));
 		x1 = _mm_xor_si128(x1, _mm_load_si128(AT(16 * 1)));
@@ -42,3 +42,84 @@ unsigned read_memory_sse2(const void *buf, size_t count)
 
 	return _mm_cvtsi128_si32(x0) & 0xFF;
 }
+
+unsigned write_memory_sse2(void *buf, size_t count)
+{
+	char *buf_p = buf;
+	size_t i;
+
+	__m128i x0 = _mm_set1_epi8(0);
+	__m128i x1 = _mm_set1_epi8(1);
+	__m128i x2 = _mm_set1_epi8(2);
+	__m128i x3 = _mm_set1_epi8(3);
+	__m128i x4 = _mm_set1_epi8(4);
+	__m128i x5 = _mm_set1_epi8(5);
+	__m128i x6 = _mm_set1_epi8(6);
+	__m128i x7 = _mm_set1_epi8(7);
+
+#define AT(x) (__m128i *)(buf_p + (x))
+	for (i = 0; i < count; i += 16 * 8) {
+		x0 = _mm_add_epi8(x0, x7);
+		x1 = _mm_add_epi8(x1, x7);
+		x2 = _mm_add_epi8(x2, x7);
+		x3 = _mm_add_epi8(x3, x7);
+		x4 = _mm_add_epi8(x4, x7);
+		x5 = _mm_add_epi8(x5, x7);
+		x6 = _mm_add_epi8(x6, x7);
+		x7 = _mm_add_epi8(x7, x7);
+
+		_mm_store_si128(AT(16 * 0), x0);
+		_mm_store_si128(AT(16 * 1), x1);
+		_mm_store_si128(AT(16 * 2), x2);
+		_mm_store_si128(AT(16 * 3), x3);
+		_mm_store_si128(AT(16 * 4), x4);
+		_mm_store_si128(AT(16 * 5), x5);
+		_mm_store_si128(AT(16 * 6), x6);
+		_mm_store_si128(AT(16 * 7), x7);
+
+		buf_p += 16 * 8;
+	}
+#undef AT
+	return _mm_cvtsi128_si32(x0) & 0xFF;
+}
+
+unsigned write_memory_nt_sse2(void *buf, size_t count)
+{
+	char *buf_p = buf;
+	size_t i;
+
+	__m128i x0 = _mm_set1_epi8(0);
+	__m128i x1 = _mm_set1_epi8(1);
+	__m128i x2 = _mm_set1_epi8(2);
+	__m128i x3 = _mm_set1_epi8(3);
+	__m128i x4 = _mm_set1_epi8(4);
+	__m128i x5 = _mm_set1_epi8(5);
+	__m128i x6 = _mm_set1_epi8(6);
+	__m128i x7 = _mm_set1_epi8(7);
+
+#define AT(x) (__m128i *)(buf_p + (x))
+	for (i = 0; i < count; i += 16 * 8) {
+		x0 = _mm_add_epi8(x0, x7);
+		x1 = _mm_add_epi8(x1, x7);
+		x2 = _mm_add_epi8(x2, x7);
+		x3 = _mm_add_epi8(x3, x7);
+		x4 = _mm_add_epi8(x4, x7);
+		x5 = _mm_add_epi8(x5, x7);
+		x6 = _mm_add_epi8(x6, x7);
+		x7 = _mm_add_epi8(x7, x7);
+
+		_mm_stream_si128(AT(16 * 0), x0);
+		_mm_stream_si128(AT(16 * 1), x1);
+		_mm_stream_si128(AT(16 * 2), x2);
+		_mm_stream_si128(AT(16 * 3), x3);
+		_mm_stream_si128(AT(16 * 4), x4);
+		_mm_stream_si128(AT(16 * 5), x5);
+		_mm_stream_si128(AT(16 * 6), x6);
+		_mm_stream_si128(AT(16 * 7), x7);
+
+		buf_p += 16 * 8;
+	}
+#undef AT
+	return _mm_cvtsi128_si32(x0) & 0xFF;
+}
+

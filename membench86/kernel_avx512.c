@@ -1,7 +1,7 @@
 #include <immintrin.h>
 #include "kernel.h"
 
-unsigned read_memory_avx512(const void *buf, size_t count)
+unsigned read_memory_avx512(void *buf, size_t count)
 {
 	const char *buf_p = buf;
 	size_t i;
@@ -15,7 +15,7 @@ unsigned read_memory_avx512(const void *buf, size_t count)
 	__m512i x6 = x0;
 	__m512i x7 = x0;
 
-	for (i = 0; i < count; i += 8 * 64) {
+	for (i = 0; i < count; i += 64 * 8) {
 		x0 = _mm512_xor_si512(x0, _mm512_load_si512(buf_p + 0 * 64));
 		x1 = _mm512_xor_si512(x1, _mm512_load_si512(buf_p + 1 * 64));
 		x2 = _mm512_xor_si512(x2, _mm512_load_si512(buf_p + 2 * 64));
@@ -25,7 +25,7 @@ unsigned read_memory_avx512(const void *buf, size_t count)
 		x6 = _mm512_xor_si512(x6, _mm512_load_si512(buf_p + 6 * 64));
 		x7 = _mm512_xor_si512(x7, _mm512_load_si512(buf_p + 7 * 64));
 
-		buf_p += 8 * 64;
+		buf_p += 64 * 8;
 	}
 
 	x0 = _mm512_add_epi32(x0, x1);
@@ -37,6 +37,84 @@ unsigned read_memory_avx512(const void *buf, size_t count)
 	x4 = _mm512_add_epi32(x4, x6);
 
 	x0 = _mm512_add_epi32(x0, x4);
+
+	return _mm_extract_epi8(_mm512_extracti32x4_epi32(x0, 0), 0);
+}
+
+unsigned write_memory_avx512(void *buf, size_t count)
+{
+	char *buf_p = buf;
+	size_t i;
+
+	__m512i x0 = _mm512_set1_epi8(0);
+	__m512i x1 = _mm512_set1_epi8(1);
+	__m512i x2 = _mm512_set1_epi8(2);
+	__m512i x3 = _mm512_set1_epi8(3);
+	__m512i x4 = _mm512_set1_epi8(4);
+	__m512i x5 = _mm512_set1_epi8(5);
+	__m512i x6 = _mm512_set1_epi8(6);
+	__m512i x7 = _mm512_set1_epi8(7);
+
+	for (i = 0; i < count; i += 64 * 8) {
+		x0 = _mm512_add_epi8(x0, x7);
+		x1 = _mm512_add_epi8(x1, x7);
+		x2 = _mm512_add_epi8(x2, x7);
+		x3 = _mm512_add_epi8(x3, x7);
+		x4 = _mm512_add_epi8(x4, x7);
+		x5 = _mm512_add_epi8(x5, x7);
+		x6 = _mm512_add_epi8(x6, x7);
+		x7 = _mm512_add_epi8(x7, x7);
+
+		_mm512_store_si512(buf_p + 64 * 0, x0);
+		_mm512_store_si512(buf_p + 64 * 1, x1);
+		_mm512_store_si512(buf_p + 64 * 2, x2);
+		_mm512_store_si512(buf_p + 64 * 3, x3);
+		_mm512_store_si512(buf_p + 64 * 4, x4);
+		_mm512_store_si512(buf_p + 64 * 5, x5);
+		_mm512_store_si512(buf_p + 64 * 6, x6);
+		_mm512_store_si512(buf_p + 64 * 7, x7);
+
+		buf_p += 64 * 8;
+	}
+
+	return _mm_extract_epi8(_mm512_extracti32x4_epi32(x0, 0), 0);
+}
+
+unsigned write_memory_nt_avx512(void *buf, size_t count)
+{
+	char *buf_p = buf;
+	size_t i;
+
+	__m512i x0 = _mm512_set1_epi8(0);
+	__m512i x1 = _mm512_set1_epi8(1);
+	__m512i x2 = _mm512_set1_epi8(2);
+	__m512i x3 = _mm512_set1_epi8(3);
+	__m512i x4 = _mm512_set1_epi8(4);
+	__m512i x5 = _mm512_set1_epi8(5);
+	__m512i x6 = _mm512_set1_epi8(6);
+	__m512i x7 = _mm512_set1_epi8(7);
+
+	for (i = 0; i < count; i += 64 * 8) {
+		x0 = _mm512_add_epi8(x0, x7);
+		x1 = _mm512_add_epi8(x1, x7);
+		x2 = _mm512_add_epi8(x2, x7);
+		x3 = _mm512_add_epi8(x3, x7);
+		x4 = _mm512_add_epi8(x4, x7);
+		x5 = _mm512_add_epi8(x5, x7);
+		x6 = _mm512_add_epi8(x6, x7);
+		x7 = _mm512_add_epi8(x7, x7);
+
+		_mm512_stream_si512(buf_p + 64 * 0, x0);
+		_mm512_stream_si512(buf_p + 64 * 1, x1);
+		_mm512_stream_si512(buf_p + 64 * 2, x2);
+		_mm512_stream_si512(buf_p + 64 * 3, x3);
+		_mm512_stream_si512(buf_p + 64 * 4, x4);
+		_mm512_stream_si512(buf_p + 64 * 5, x5);
+		_mm512_stream_si512(buf_p + 64 * 6, x6);
+		_mm512_stream_si512(buf_p + 64 * 7, x7);
+
+		buf_p += 64 * 8;
+	}
 
 	return _mm_extract_epi8(_mm512_extracti32x4_epi32(x0, 0), 0);
 }
