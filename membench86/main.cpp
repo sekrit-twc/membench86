@@ -137,7 +137,7 @@ public:
 
 		do {
 			// Run kernel while waiting to ensure YMM/ZMM state is initialized.
-			m_kernel(buf, std::min(count, static_cast<size_t>(64)));
+			m_kernel(buf, std::min(count, static_cast<size_t>(128)));
 		} while (!*m_start_flag && !*m_cancel_flag);
 
 		for (unsigned i = 0; i < m_iter_count; ++i) {
@@ -229,7 +229,15 @@ void run(const Arguments &args)
 						w.set_kernel(write_memory_c);
 					break;
 				case AccessMode::COPY:
-					throw std::runtime_error{ "COPY not implemented" };
+					if (args.avx512)
+						w.set_kernel(args.nt ? copy_memory_nt_avx512 : copy_memory_avx512);
+					else if (args.avx)
+						w.set_kernel(args.nt ? copy_memory_nt_avx2 : copy_memory_avx2);
+					else if (args.sse)
+						w.set_kernel(args.nt ? copy_memory_nt_sse2 : copy_memory_sse2);
+					else
+						w.set_kernel(copy_memory_c);
+					break;
 				default:
 					return;
 				}

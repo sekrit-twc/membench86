@@ -123,3 +123,112 @@ unsigned write_memory_nt_sse2(void *buf, size_t count)
 	return _mm_cvtsi128_si32(x0) & 0xFF;
 }
 
+unsigned copy_memory_sse2(void *buf, size_t count)
+{
+	const char *src_p = buf;
+	char *dst_p = (char *)buf + count / 2;
+	size_t i;
+
+	__m128i x0 = _mm_setzero_si128();
+	__m128i x1 = x0;
+	__m128i x2 = x0;
+	__m128i x3 = x0;
+	__m128i x4 = x0;
+	__m128i x5 = x0;
+	__m128i x6 = x0;
+	__m128i x7 = x0;
+
+#define ATS(x) (const __m128i *)(src_p + (x))
+#define ATD(x) (__m128i *)(dst_p + (x))
+	for (i = 0; i < count / 2; i += 16 * 8) {
+		x0 = _mm_xor_si128(x0, _mm_load_si128(ATS(16 * 0)));
+		x1 = _mm_xor_si128(x1, _mm_load_si128(ATS(16 * 1)));
+		x2 = _mm_xor_si128(x2, _mm_load_si128(ATS(16 * 2)));
+		x3 = _mm_xor_si128(x3, _mm_load_si128(ATS(16 * 3)));
+		x4 = _mm_xor_si128(x4, _mm_load_si128(ATS(16 * 4)));
+		x5 = _mm_xor_si128(x5, _mm_load_si128(ATS(16 * 5)));
+		x6 = _mm_xor_si128(x6, _mm_load_si128(ATS(16 * 6)));
+		x7 = _mm_xor_si128(x7, _mm_load_si128(ATS(16 * 7)));
+
+		_mm_store_si128(ATD(16 * 0), x0);
+		_mm_store_si128(ATD(16 * 1), x1);
+		_mm_store_si128(ATD(16 * 2), x2);
+		_mm_store_si128(ATD(16 * 3), x3);
+		_mm_store_si128(ATD(16 * 4), x4);
+		_mm_store_si128(ATD(16 * 5), x5);
+		_mm_store_si128(ATD(16 * 6), x6);
+		_mm_store_si128(ATD(16 * 7), x7);
+
+		src_p += 16 * 8;
+		dst_p += 16 * 8;
+	}
+#undef ATD
+#undef ATS
+
+	x0 = _mm_add_epi8(x0, x1);
+	x2 = _mm_add_epi8(x2, x3);
+	x4 = _mm_add_epi8(x4, x5);
+	x6 = _mm_add_epi8(x6, x7);
+
+	x0 = _mm_add_epi8(x0, x2);
+	x4 = _mm_add_epi8(x4, x6);
+
+	x0 = _mm_add_epi8(x0, x4);
+
+	return _mm_cvtsi128_si32(x0) & 0xFF;
+}
+
+unsigned copy_memory_nt_sse2(void *buf, size_t count)
+{
+	const char *src_p = buf;
+	char *dst_p = (char *)buf + count / 2;
+	size_t i;
+
+	__m128i x0 = _mm_setzero_si128();
+	__m128i x1 = x0;
+	__m128i x2 = x0;
+	__m128i x3 = x0;
+	__m128i x4 = x0;
+	__m128i x5 = x0;
+	__m128i x6 = x0;
+	__m128i x7 = x0;
+
+#define ATS(x) (const __m128i *)(src_p + (x))
+#define ATD(x) (__m128i *)(dst_p + (x))
+	for (i = 0; i < count / 2; i += 16 * 8) {
+		x0 = _mm_xor_si128(x0, _mm_load_si128(ATS(16 * 0)));
+		x1 = _mm_xor_si128(x1, _mm_load_si128(ATS(16 * 1)));
+		x2 = _mm_xor_si128(x2, _mm_load_si128(ATS(16 * 2)));
+		x3 = _mm_xor_si128(x3, _mm_load_si128(ATS(16 * 3)));
+		x4 = _mm_xor_si128(x4, _mm_load_si128(ATS(16 * 4)));
+		x5 = _mm_xor_si128(x5, _mm_load_si128(ATS(16 * 5)));
+		x6 = _mm_xor_si128(x6, _mm_load_si128(ATS(16 * 6)));
+		x7 = _mm_xor_si128(x7, _mm_load_si128(ATS(16 * 7)));
+
+		_mm_stream_si128(ATD(16 * 0), x0);
+		_mm_stream_si128(ATD(16 * 1), x1);
+		_mm_stream_si128(ATD(16 * 2), x2);
+		_mm_stream_si128(ATD(16 * 3), x3);
+		_mm_stream_si128(ATD(16 * 4), x4);
+		_mm_stream_si128(ATD(16 * 5), x5);
+		_mm_stream_si128(ATD(16 * 6), x6);
+		_mm_stream_si128(ATD(16 * 7), x7);
+
+		src_p += 16 * 8;
+		dst_p += 16 * 8;
+	}
+#undef ATD
+#undef ATS
+
+	x0 = _mm_add_epi8(x0, x1);
+	x2 = _mm_add_epi8(x2, x3);
+	x4 = _mm_add_epi8(x4, x5);
+	x6 = _mm_add_epi8(x6, x7);
+
+	x0 = _mm_add_epi8(x0, x2);
+	x4 = _mm_add_epi8(x4, x6);
+
+	x0 = _mm_add_epi8(x0, x4);
+
+	return _mm_cvtsi128_si32(x0) & 0xFF;
+}
